@@ -1,0 +1,23 @@
+DSC
+
+body {
+  background: #6f707c;
+}
+shader-doodle {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.text {
+  position: absolute;
+  font-family: "Bowlby One", cursive;
+  top: 50%;
+  left: 50%;
+  color: #ffffba;
+  transform: translate(-50%, -50%);
+  font-size: 2rem;
+  white-space: nowrap;
+}

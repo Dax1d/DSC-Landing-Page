@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="1561.6">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 14.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000; min-height: 14.0px}
+    span.s1 {font-kerning: none}
+  </style>
+</head>
+<body>
+<p class="p1"><span class="s1">&lt;!-- https://github.com/halvves/shader-doodle --&gt;</span></p>
+<p class="p1"><span class="s1">&lt;!--</span></p>
+<p class="p1"><span class="s1">// Fluid dynamics using buffers - Ring of fire</span></p>
+<p class="p1"><span class="s1">// everything is fine right?</span></p>
+<p class="p1"><span class="s1">--&gt;</span></p>
+<p class="p1"><span class="s1">&lt;shader-doodle&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;sd-node name="iChannel0" prevbuffer&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;script type="x-shader/x-fragment"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>uniform sampler2D u_prevbuffer;</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>#define PI 3.141592</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>#define LOOKUP(COORD) texture2D(u_prevbuffer,(COORD)/u_resolution.xy)</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>vec4 Field (vec2 position) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>// Rule 1 : All My Energy transates with my ordered Energy</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>vec2 velocityGuess = LOOKUP (position).xy;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>vec2 positionGuess = position - velocityGuess;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>return LOOKUP (positionGuess);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>void mainImage( out vec4 Energy, in vec2 Me )</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>{</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>Energy<span class="Apple-converted-space">  </span>=<span class="Apple-converted-space">  </span>Field(Me);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>// Neighborhood :</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>float scale = 0.8;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>vec4 pX<span class="Apple-converted-space">  </span>=<span class="Apple-converted-space">  </span>Field(Me + vec2(scale,0));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>vec4 pY<span class="Apple-converted-space">  </span>=<span class="Apple-converted-space">  </span>Field(Me + vec2(0,scale));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>vec4 nX<span class="Apple-converted-space">  </span>=<span class="Apple-converted-space">  </span>Field(Me - vec2(scale,0));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>vec4 nY<span class="Apple-converted-space">  </span>=<span class="Apple-converted-space">  </span>Field(Me - vec2(0,scale));</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>// Rule 2 : Disordered Energy diffuses completely :</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>Energy.b = (pX.b + pY.b + nX.b + nY.b)/4.;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>// Rule 3 : Order in the disordered Energy creates Order :</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>vec2 Force;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>Force.x = nX.b - pX.b;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>Force.y = nY.b - pY.b;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>Energy.xy += (Force/8.);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>// Rule 4 : Disorder in the ordered Energy creates Disorder :</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>Energy.b += (nX.x - pX.x + nY.y - pY.y)/4.;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>// Gravity effect :</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>Energy.y -=Energy.w/200.;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>// Mass concervation :</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>Energy.w += sin(nX.x*nX.w-pX.x*pX.w+nY.y*nY.w-pY.y*pY.w)/4.;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>//Energy.xy += Energy.w/300.;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>Energy.b -= sin(Force.y-Force.x)*1.15;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>// Ring shapes <span class="Apple-converted-space"> </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>float shapes = distance(Me.xy,u_resolution.xy/2.);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>float size = shapes/u_resolution.x;</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>shapes *= 155.5 + 156. * sin( (shapes*.025) * (shapes/u_resolution.x) - (u_time*1.1) );</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>//Boundary conditions :</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>float hlf =10.;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>if(Me.x&lt;hlf||Me.y&lt;hlf||u_resolution.x-Me.x&lt;hlf||u_resolution.y-Me.y&lt;hlf) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>Energy.xy *= 0.0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>} else {</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>if (shapes &lt; size) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>float dc = distance(Me.xy,u_resolution.xy/2.)*2.5;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                  </span>Energy.w = 1.*(dc/u_resolution.x);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">      </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>void main(void) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>mainImage(gl_FragColor, gl_FragCoord.xy);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/sd-node&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;script type="x-shader/x-fragment"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>uniform sampler2D iChannel0;</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">    </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>#define LOOKUP(COORD) texture2D(iChannel0,(COORD)/u_resolution.xy)</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">    </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>void main() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>vec4 color = LOOKUP (gl_FragCoord.xy);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>vec3 newColor = vec3(</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>smoothstep(0.,.75,color.w),</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>smoothstep(0.65,.95,color.w),</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>color.w/2.</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>gl_FragColor = vec4(newColor,1.);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/script&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;/shader-doodle&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div class="text"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>everything is fine</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;!--Music Coil | Teenage Lightnight --&gt;</span></p>
+</body>
+</html>
